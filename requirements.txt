@@ -1,0 +1,9 @@
+SpeechRecognition
+pyttsx3
+pyaudio
+python-dotenv
+pvporcupine
+sounddevice
+openai
+pyautogui
+llama-cpp-python
