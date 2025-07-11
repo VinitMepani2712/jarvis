@@ -213,11 +213,11 @@ def handle_command(cmd: str) -> bool:
         speak(f"Searching the web for {q}")
         webbrowser.open(f"https://www.google.com/search?q={q}")
         return True
-    if "open recycle bin" in cmd:
+    if "recycle bin" in cmd:
         speak("Opening Recycle Bin.")
         subprocess.Popen(["explorer", "shell:RecycleBinFolder"])
         return True
-    if "open my computer" in cmd or re.match(r"open (?:my )?computer", cmd):
+    if "my computer" in cmd or re.match(r"open (?:my )?computer", cmd):
         speak("Opening This PC.")
         subprocess.Popen(["explorer", "shell:MyComputerFolder"])
         return True
