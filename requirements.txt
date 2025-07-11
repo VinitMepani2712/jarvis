@@ -1,9 +1,11 @@
 SpeechRecognition
-pyttsx3
 pyaudio
 python-dotenv
 pvporcupine
 sounddevice
 openai
 pyautogui
-llama-cpp-python
+gpt4all
+pygetwindow
+psutil
+pywin32
