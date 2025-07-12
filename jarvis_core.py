@@ -30,7 +30,6 @@ from jarvis_llm import chat_with_ai
 # ─── Env & Keys ───────────────────────────────────────────────────────────────
 load_dotenv(override=True)
 PV_ACCESS_KEY = os.getenv("PV_ACCESS_KEY")
-# NASA_KEY = os.getenv("NASA_API_KEY")
 
 # ─── TTS via Windows SAPI ─────────────────────────────────────────────────────
 speaker = Dispatch("SAPI.SpVoice")
@@ -39,7 +38,7 @@ speaker.Volume = 100
 
 def speak(text: str):
     """Speak text out loud and echo to console."""
-    print(f"[jarvis speaking]: {text}")
+    print(f"[Jarvis speaking]: {text}")
     try:
         speaker.Speak(text)
     except Exception as e:
@@ -82,7 +81,7 @@ class WakeDetector:
 # Calibrate ambient noise once
 with mic as source:
     recognizer.adjust_for_ambient_noise(source, duration=0.5)
-    print(f"[DEBUG] energy_threshold set to {recognizer.energy_threshold}")
+    # print(f"[DEBUG] energy_threshold set to {recognizer.energy_threshold}")
 
 wake = WakeDetector(keyword="jarvis", sensitivity=0.2)
 
