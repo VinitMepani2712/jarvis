@@ -26,6 +26,8 @@ import pygetwindow as gw
 import psutil
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from jarvis_llm import chat_with_ai
+import mss, cv2, numpy as np, time, threading
+
 
 # ─── Env & Keys ───────────────────────────────────────────────────────────────
 load_dotenv(override=True)
@@ -80,7 +82,7 @@ class WakeDetector:
 
 # Calibrate ambient noise once
 with mic as source:
-    recognizer.adjust_for_ambient_noise(source, duration=0.5)
+    recognizer.adjust_for_ambient_noise(source, duration=0.1)
     # print(f"[DEBUG] energy_threshold set to {recognizer.energy_threshold}")
 
 wake = WakeDetector(keyword="jarvis", sensitivity=0.2)
@@ -135,6 +137,38 @@ def local_small_talk(cmd: str) -> str:
     if "joke" in text or "tell me a joke" in text:
         return random.choice(JOKES)
     return ""
+
+# ─── Screen Recording ───────────────────────────────────────────────────────
+def record_screen_python(duration: int, output_file: str, fps: int = 15):
+    """Capture the entire virtual desktop for `duration` seconds, with console logs."""
+    print(f"[Recorder] Starting capture for {duration}s → {output_file}")
+    try:
+        with mss.mss() as sct:
+            virtual = sct.monitors[0]
+            width, height = virtual["width"], virtual["height"]
+            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            writer = cv2.VideoWriter(output_file, fourcc, fps, (width, height))
+
+            end_time = time.time() + duration
+            interval = 1.0 / fps
+            frame_count = 0
+
+            while time.time() < end_time:
+                start = time.time()
+                img = np.array(sct.grab(virtual))
+                frame = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+                writer.write(frame)
+                frame_count += 1
+
+                # throttle
+                elapsed = time.time() - start
+                if elapsed < interval:
+                    time.sleep(interval - elapsed)
+
+            writer.release()
+            print(f"[Recorder] Finished: wrote {frame_count} frames.")
+    except Exception as e:
+        print(f"[Recorder] ERROR: {e}")
 
 # ─── Command Dispatcher ──────────────────────────────────────────────────────
 def handle_command(cmd: str) -> bool:
@@ -311,10 +345,18 @@ def handle_command(cmd: str) -> bool:
         pyautogui.screenshot().save(fn); 
         speak(f"Saved screenshot as {fn}"); 
         return True
-    if "record screen" in cmd: 
-        fn=f"recording_{int(time.time())}.mp4"; 
-        speak("Recording 10 seconds of screen..."); 
-        subprocess.Popen(["ffmpeg","-y","-f","gdigrab","-framerate","15","-t","10","-i","desktop",fn]); 
+    if any(phrase in cmd for phrase in ["record screen", "start recording", "capture screen", "screen capture" , "record video", "start record"]):
+    # parse duration or default to 10
+        m = re.search(r'(\d+)', cmd)
+        duration = int(m.group(1)) if m else 10
+
+        fn = f"recording_{int(time.time())}.mp4"
+        speak(f"Recording of {duration} seconds of scree is starting now. Saving to {fn}.")
+
+        # run in background to avoid blocking Jarvis’s main loop
+        t = threading.Thread(target=record_screen_python, args=(duration, fn), daemon=True)
+        t.start()
+
         return True
 
     # ── System Info ───────────────────────────────────────────────────────────

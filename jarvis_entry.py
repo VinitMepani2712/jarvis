@@ -2,11 +2,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
+from jarvis_llm import chat_with_ai
 from jarvis_wake import WakeDetector
-from jarvis_core import (
-    speak, listen, handle_command,
-    chat_with_ai, greet_on_startup
-)
+from jarvis_core import handle_command, speak, listen, greet_on_startup
 
 EXIT_KEYWORDS = ("exit", "quit", "goodbye")
 
