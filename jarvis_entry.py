@@ -33,16 +33,12 @@ if __name__ == "__main__":
             # don’t sys.exit(); just drop back to outer loop
             continue
 
-        # 3) Built-in commands
         if handle_command(cmd):
             continue
 
-        # 4) Small-talk via LLM
         if cmd.split()[0] in ("hi", "hello", "hey", "how"):
             reply = chat_with_ai(cmd)
             speak(reply)
             continue
 
-        # 5) Nothing matched → retry
         speak("Sorry, I didn’t understand that. Please say 'jarvis' to wake me and try again.")
-        # loop back to waiting for wake-word
