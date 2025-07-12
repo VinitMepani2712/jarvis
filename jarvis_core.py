@@ -27,6 +27,12 @@ import psutil
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from jarvis_llm import chat_with_ai
 import mss, cv2, numpy as np, time, threading
+import re
+import time
+import threading
+import subprocess
+from imageio_ffmpeg import get_ffmpeg_exe
+FFMPEG_CMD = get_ffmpeg_exe()
 
 
 # ─── Env & Keys ───────────────────────────────────────────────────────────────
@@ -139,7 +145,7 @@ def local_small_talk(cmd: str) -> str:
     return ""
 
 # ─── Screen Recording ───────────────────────────────────────────────────────
-def record_screen_python(duration: int, output_file: str, fps: int = 15):
+def record_screen(duration: int, output_file: str, fps: int = 15):
     """Capture the entire virtual desktop for `duration` seconds, with console logs."""
     print(f"[Recorder] Starting capture for {duration}s → {output_file}")
     try:
@@ -169,6 +175,25 @@ def record_screen_python(duration: int, output_file: str, fps: int = 15):
             print(f"[Recorder] Finished: wrote {frame_count} frames.")
     except Exception as e:
         print(f"[Recorder] ERROR: {e}")
+
+# ─── Screen Recording with Audio ─────────────────────────────────────────────
+def record_screen_with_audio(duration: int, output_file: str, fps: int = 15):
+    cmd = [
+        FFMPEG_CMD,
+        "-y",
+        "-f", "gdigrab",
+        "-framerate", str(fps),
+        "-i", "desktop",
+        "-f", "wasapi",
+        "-i", "default",
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        "-t", str(duration),
+        output_file
+    ]
+    subprocess.Popen(cmd)
 
 # ─── Command Dispatcher ──────────────────────────────────────────────────────
 def handle_command(cmd: str) -> bool:
@@ -351,10 +376,10 @@ def handle_command(cmd: str) -> bool:
         duration = int(m.group(1)) if m else 10
 
         fn = f"recording_{int(time.time())}.mp4"
-        speak(f"Recording of {duration} seconds of scree is starting now. Saving to {fn}.")
+        speak(f"Recording of {duration} seconds of screen is starting now.")
 
         # run in background to avoid blocking Jarvis’s main loop
-        t = threading.Thread(target=record_screen_python, args=(duration, fn), daemon=True)
+        t = threading.Thread(target=record_screen, args=(duration, fn), daemon=True)
         t.start()
 
         return True
