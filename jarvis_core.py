@@ -24,7 +24,7 @@ from win32com.client import Dispatch
 import pyautogui
 import pygetwindow as gw
 import psutil
-
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from jarvis_llm import chat_with_ai
 
 # ─── Env & Keys ───────────────────────────────────────────────────────────────
