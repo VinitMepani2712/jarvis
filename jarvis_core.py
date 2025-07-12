@@ -27,12 +27,6 @@ import psutil
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 from jarvis_llm import chat_with_ai
 import mss, cv2, numpy as np, time, threading
-import re
-import time
-import threading
-import subprocess
-from imageio_ffmpeg import get_ffmpeg_exe
-FFMPEG_CMD = get_ffmpeg_exe()
 
 
 # ─── Env & Keys ───────────────────────────────────────────────────────────────
@@ -175,25 +169,6 @@ def record_screen(duration: int, output_file: str, fps: int = 15):
             print(f"[Recorder] Finished: wrote {frame_count} frames.")
     except Exception as e:
         print(f"[Recorder] ERROR: {e}")
-
-# ─── Screen Recording with Audio ─────────────────────────────────────────────
-def record_screen_with_audio(duration: int, output_file: str, fps: int = 15):
-    cmd = [
-        FFMPEG_CMD,
-        "-y",
-        "-f", "gdigrab",
-        "-framerate", str(fps),
-        "-i", "desktop",
-        "-f", "wasapi",
-        "-i", "default",
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-c:a", "aac",
-        "-b:a", "128k",
-        "-t", str(duration),
-        output_file
-    ]
-    subprocess.Popen(cmd)
 
 # ─── Command Dispatcher ──────────────────────────────────────────────────────
 def handle_command(cmd: str) -> bool:
