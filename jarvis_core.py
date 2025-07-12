@@ -29,11 +29,11 @@ from jarvis_llm import chat_with_ai
 import mss, cv2, numpy as np, time, threading
 
 
-# ─── Env & Keys ───────────────────────────────────────────────────────────────
+#  Env & Keys 
 load_dotenv(override=True)
 PV_ACCESS_KEY = os.getenv("PV_ACCESS_KEY")
 
-# ─── TTS via Windows SAPI ─────────────────────────────────────────────────────
+#  TTS via Windows SAPI 
 speaker = Dispatch("SAPI.SpVoice")
 speaker.Rate = 0
 speaker.Volume = 100
@@ -46,11 +46,11 @@ def speak(text: str):
     except Exception as e:
         print(f"[TTS error]: {e}")
 
-# ─── STT Setup ────────────────────────────────────────────────────────────────
+#  STT Setup 
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
 
-# ─── WakeWord Detector ─────────────────────────────────────────────────────────
+#  WakeWord Detector 
 class WakeDetector:
     def __init__(self, keyword="jarvis", model_path=None, sensitivity: float = 0.5):
         access_key = PV_ACCESS_KEY
@@ -87,7 +87,7 @@ with mic as source:
 
 wake = WakeDetector(keyword="jarvis", sensitivity=0.2)
 
-# ─── Listening Function ─────────────────────────────────────────────────────
+#  Listening Function 
 def listen(timeout: float = 5, phrase_time_limit: float = 5) -> str:
     """
     Listen on the default mic.
@@ -117,7 +117,7 @@ def listen(timeout: float = 5, phrase_time_limit: float = 5) -> str:
         speak("Sorry, I couldn't understand.")
         return ""
 
-# ─── Local small-talk Data ────────────────────────────────────────────────────
+#  Local small-talk Data 
 GREETINGS = ["Hello there!", "Hi!", "Hey!"]
 HOW_ARE_YOU = [
     "I'm doing great, thanks! How can I assist you?",
@@ -138,7 +138,7 @@ def local_small_talk(cmd: str) -> str:
         return random.choice(JOKES)
     return ""
 
-# ─── Screen Recording ───────────────────────────────────────────────────────
+#  Screen Recording 
 def record_screen(duration: int, output_file: str, fps: int = 15):
     """Capture the entire virtual desktop for `duration` seconds, with console logs."""
     print(f"[Recorder] Starting capture for {duration}s → {output_file}")
@@ -170,7 +170,7 @@ def record_screen(duration: int, output_file: str, fps: int = 15):
     except Exception as e:
         print(f"[Recorder] ERROR: {e}")
 
-# ─── Command Dispatcher ──────────────────────────────────────────────────────
+#  Command Dispatcher 
 def handle_command(cmd: str) -> bool:
     """
     Returns True if a built-in command handled it;
@@ -179,13 +179,13 @@ def handle_command(cmd: str) -> bool:
     cmd = cmd.lower().strip()
     print(f">>> You said: {cmd}")
 
-    # ── small-talk ────────────────────────────────────────────────────────────
+    #  small-talk 
     reply = local_small_talk(cmd)
     if reply:
         speak(reply)
         return True
 
-    # ── Context-aware typing ──────────────────────────────────────────────────
+    #  Context-aware typing 
     if m := re.match(r"type (.+) on (browser|notepad|word|code)", cmd):
         text, app = m.group(1), m.group(2)
         title_map = {
@@ -216,7 +216,7 @@ def handle_command(cmd: str) -> bool:
         speak(f"Typed '{text}'")
         return True
 
-    # ── App control ───────────────────────────────────────────────────────────
+    #  App control 
     if m := re.match(r"(?:open|launch) app (.+)", cmd):
         app = m.group(1).strip()
         speak(f"Opening {app}")
@@ -236,7 +236,7 @@ def handle_command(cmd: str) -> bool:
                 win.maximize(); speak("Window maximized")
         return True
 
-    # ── Browser & Web Search ───────────────────────────────────────────────────
+    #  Browser & Web Search 
     if re.match(r"open browser", cmd):
         speak("Opening default browser.")
         webbrowser.open("https://www.google.com")
@@ -275,7 +275,7 @@ def handle_command(cmd: str) -> bool:
         webbrowser.open("https://youtube.com/") 
         return True
     
-    # ── File & Folder Ops ──────────────────────────────────────────────────────
+    #  File & Folder Ops 
     if m := re.match(r"create folder (.+)", cmd):
         path = m.group(1).strip('"')
         os.makedirs(path, exist_ok=True)
@@ -303,7 +303,7 @@ def handle_command(cmd: str) -> bool:
         else: speak("No matching files found.")
         return True
 
-    # ── Media Control ─────────────────────────────────────────────────────────
+    #  Media Control 
     if m := re.match(r"play music from (.+)", cmd):
         folder = m.group(1).strip('"')
         if os.path.isdir(folder):
@@ -316,7 +316,7 @@ def handle_command(cmd: str) -> bool:
     if "next" in cmd: pyautogui.press("nexttrack"); speak("Next track"); return True
     if "previous" in cmd: pyautogui.press("prevtrack"); speak("Previous track"); return True
 
-    # ── Volume Control ─────────────────────────────────────────────────────────
+    #  Volume Control 
     if m := re.match(r"set volume to (\d+)", cmd): 
         vol = max(0,min(100,int(m.group(1)))); 
         speaker.Volume = vol; 
@@ -339,7 +339,7 @@ def handle_command(cmd: str) -> bool:
         speak("Volume down"); 
         return True
 
-    # ── Screenshots & Recording ────────────────────────────────────────────────
+    #  Screenshots & Recording 
     if "screenshot" in cmd: 
         fn=f"screenshot_{int(time.time())}.png"; 
         pyautogui.screenshot().save(fn); 
@@ -359,7 +359,7 @@ def handle_command(cmd: str) -> bool:
 
         return True
 
-    # ── System Info ───────────────────────────────────────────────────────────
+    #  System Info 
     if "what time" in cmd: now=time.strftime("%I:%M %p"); speak(f"The time is {now}"); return True
     if "what date" in cmd: today=time.strftime("%B %d, %Y"); speak(f"Today is {today}"); return True
     if "battery" in cmd: batt=psutil.sensors_battery(); speak(f"Battery at {int(batt.percent)}%") if batt else speak("Battery info unavailable"); return True
@@ -369,21 +369,46 @@ def handle_command(cmd: str) -> bool:
     if "system info" in cmd: info=f"{platform.system()} {platform.release()}, {platform.machine()}"; speak(info); return True
 
 
-    # ── Power & Lock ───────────────────────────────────────────────────────────
-    if "shut down" in cmd: speak("Shutting down in 5 seconds."); os.system("shutdown /s /t 5"); return True
-    if "restart" in cmd: speak("Restarting in 5 seconds."); os.system("shutdown /r /t 5"); return True
-    if "lock workstation" in cmd: speak("Locking workstation."); ctypes.windll.user32.LockWorkStation(); return True
+    #  Power & Lock 
+    shutdown_keywords = ["shutdown", "shut down", "power off"]
+    restart_keywords  = ["restart", "reboot"]
+    cancel_keywords   = ["cancel shutdown", "abort shutdown", "stop shutdown" , "cancel restart", "abort restart", "stop restart"]
+    lock_keywords     = ["lock workstation", "lock screen"]
+
+    # Shutdown
+    if any(kw in cmd for kw in shutdown_keywords):
+        speak("Shutting down in 30 seconds. Say 'cancel shutdown' to abort.")
+        os.system("shutdown /s /t 30")  # 30 second delay
+        return True
+
+    # Restart
+    if any(kw in cmd for kw in restart_keywords):
+        speak("Restarting in 30 seconds. Say 'cancel restart' to abort.")
+        os.system("restart /r /t 30")  # 30 second delay
+        return True
+
+    # Cancel pending shutdown/restart
+    if any(kw in cmd for kw in cancel_keywords):
+        speak("Shutdown/Restart cancelled.")
+        os.system("shutdown /a")      
+        return True
+
+    # Lock screen
+    if any(kw in cmd for kw in lock_keywords):
+        speak("Locking workstation.")
+        ctypes.windll.user32.LockWorkStation()
+        return True
 
    
-    # ── Exit ───────────────────────────────────────────────────────────────────
+    #  Exit
     if any(k in cmd for k in ("exit","quit","goodbye")):
         speak("Goodbye!")
         return True
 
-    # ── Fallback → LLM ─────────────────────────────────────────────────────────
+    #  Fallback → LLM 
     return False
 
-# ─── Startup Greeting ───────────────────────────────────────────────────────────
+# Startup Greeting 
 def greet_on_startup():
     name = "Vinit"
     h = int(time.strftime("%H"))
