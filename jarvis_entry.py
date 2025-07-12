@@ -7,6 +7,8 @@ from jarvis_core import (
     chat_with_ai, greet_on_startup
 )
 
+EXIT_KEYWORDS = ("exit", "quit", "goodbye")
+
 if __name__ == "__main__":
 
     wake = WakeDetector(keyword="jarvis")
@@ -20,9 +22,16 @@ if __name__ == "__main__":
 
         # 2) Prompt and listen
         speak("How can I help you?")
-        cmd = listen(timeout=8, phrase_time_limit=12)
+        cmd = listen(timeout=8, phrase_time_limit=12) or ""
+        cmd = cmd.lower().strip()
         if not cmd:
             speak("Please try again and say 'jarvis' to wake me.")
+            continue
+
+        # 2a) Exit command → go back to waiting for wake-word
+        if any(k in cmd for k in EXIT_KEYWORDS):
+            speak("Goodbye!")
+            # don’t sys.exit(); just drop back to outer loop
             continue
 
         # 3) Built-in commands
@@ -30,7 +39,7 @@ if __name__ == "__main__":
             continue
 
         # 4) Small-talk via LLM
-        if cmd.lower().split()[0] in ("hi", "hello", "hey", "how"):
+        if cmd.split()[0] in ("hi", "hello", "hey", "how"):
             reply = chat_with_ai(cmd)
             speak(reply)
             continue
@@ -38,4 +47,3 @@ if __name__ == "__main__":
         # 5) Nothing matched → retry
         speak("Sorry, I didn’t understand that. Please say 'jarvis' to wake me and try again.")
         # loop back to waiting for wake-word
-        continue

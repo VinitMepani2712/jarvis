@@ -156,7 +156,7 @@ def handle_command(cmd: str) -> bool:
     if m := re.match(r"type (.+) on (browser|notepad|word|code)", cmd):
         text, app = m.group(1), m.group(2)
         title_map = {
-            "browser": None,
+            "browser": "https://www.google.com",
             "notepad": "Notepad",
             "word": "Microsoft Word",
             "code": "Visual Studio Code"
@@ -327,14 +327,17 @@ def handle_command(cmd: str) -> bool:
     if "ip address" in cmd: ip=socket.gethostbyname(socket.gethostname()); speak(f"Your IP address is {ip}"); return True
     if "system info" in cmd: info=f"{platform.system()} {platform.release()}, {platform.machine()}"; speak(info); return True
 
+
     # ── Power & Lock ───────────────────────────────────────────────────────────
-    if "shutdown" in cmd: speak("Shutting down in 5 seconds."); os.system("shutdown /s /t 5"); return True
+    if "shut down" in cmd: speak("Shutting down in 5 seconds."); os.system("shutdown /s /t 5"); return True
     if "restart" in cmd: speak("Restarting in 5 seconds."); os.system("shutdown /r /t 5"); return True
     if "lock workstation" in cmd: speak("Locking workstation."); ctypes.windll.user32.LockWorkStation(); return True
 
    
     # ── Exit ───────────────────────────────────────────────────────────────────
-    if any(k in cmd for k in ("exit","quit","goodbye")): speak("Goodbye!"); sys.exit(0)
+    if any(k in cmd for k in ("exit","quit","goodbye")):
+        speak("Goodbye!")
+        return True
 
     # ── Fallback → LLM ─────────────────────────────────────────────────────────
     return False
