@@ -1,16 +1,29 @@
 import os
 from dotenv import load_dotenv
+
+# Load .env from project root (.. relative to this file)
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from jarvis_llm import chat_with_ai
 from jarvis_wake import WakeDetector
-from jarvis_core import handle_command, speak, listen, greet_on_startup
+from jarvis_core import handle_command, speak, listen, greet_on_startup, init_audio
 
 EXIT_KEYWORDS = ("exit", "quit", "goodbye")
 
-if __name__ == "__main__":
+def _get_wakeword():
+    # Prefer WAKEWORD from .env, fall back to "jarvis"
+    return os.getenv("WAKEWORD", "jarvis").strip().lower() or "jarvis"
 
-    wake = WakeDetector(keyword="jarvis")
+if __name__ == "__main__":
+    # Calibrate mic once (moved out of import-time side effects)
+    init_audio()
+
+    # Build exactly one WakeDetector here
+    # If you're using a custom .ppn for the "jarvis" hotword, set JARVIS_PPN in .env
+    # Example:
+    #   JARVIS_PPN=V:\Vinit\jarvis\resources\jarvis_en_windows.ppn
+    wake = WakeDetector(keyword=_get_wakeword())
+
     greet_on_startup()
     speak("I am Jarvis. How can I assist you today?")
 
@@ -30,7 +43,6 @@ if __name__ == "__main__":
         # 2a) Exit command → go back to waiting for wake-word
         if any(k in cmd for k in EXIT_KEYWORDS):
             speak("Goodbye!")
-            # don’t sys.exit(); just drop back to outer loop
             continue
 
         # 3) Built-in commands
@@ -45,4 +57,3 @@ if __name__ == "__main__":
 
         # 5) Nothing matched → retry
         speak("Sorry, I didn’t understand that. Please say 'jarvis' to wake me and try again.")
-        # loop back to waiting for wake-word
